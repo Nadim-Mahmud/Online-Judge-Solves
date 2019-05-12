@@ -1,110 +1,77 @@
-///not solved yet
-
-
-#include <bits/stdc++.h>
-#define ll long long
-#define P(X) cout<<"db "<<X<<endl;
-#define P2(X,Y) cout<<"db2 "<<X<<" "<<Y<<endl;
-#define MX 150005
+#include<bits/stdc++.h>
+#define p(XX) cout<<XX<<endl;
+#define pp(XX,YY) cout<<XX<<" "<<YY<<endl;
 using namespace std;
+#define MX 1000005
 
-int seg[MX*4],lazy[MX*4],ara[MX];
+struct node{
+    int dt,sum;
+}seg[MX];
 
-void update(int lw,int hi,int l,int h,int pos){
-
-    if(lazy[pos]!=0){
-        seg[pos] += lazy[pos];
-        if(l!=h){
-            lazy[pos*2]+=lazy[pos];
-            lazy[pos*2+1]+=lazy[pos];
-        }
-        lazy[pos] = 0;
-    }
-    if(hi<l||lw>h) return;
-    if(lw<=l&&hi>=h){
-      //  P2(l,h)
-        seg[pos]++;
-        if(lw!=hi){
-            lazy[pos*2]++;
-            lazy[pos*2+1]++;
-        }
+void update(int lw, int hi, int idx, int val, int pos){
+    if(lw>hi) return;
+    if(lw==hi){
+        seg[pos].sum = (val>=0);
+        seg[pos].dt = val;
         return;
     }
-    int mid = (l+h)/2;
-
-    update(lw,hi,l,mid,pos*2);
-    update(lw,hi,mid+1,h,pos*2+1);
-    seg[pos] += seg[pos*2] + seg[pos*2+1];
+    int mid = (lw+hi)/2;
+    //pp(lw,hi);
+    if(mid>=idx){
+        update(lw,mid,idx,val,pos*2);
+    }
+    else{
+        update(mid+1,hi,idx,val,pos*2+1);
+    }
+    seg[pos].sum = seg[pos*2].sum + seg[pos*2+1].sum;
 }
 
-int query(int lw,int hi,int l,int h,int pos){
-    if(lw>hi) return 0;
-//     P2(l,h)
-//     P(pos)
-    if(lazy[pos]!=0){
-//        P2(l,h)
-        seg[pos] += lazy[pos];
-        if(l!=h){
-            lazy[pos*2]+=lazy[pos];
-            lazy[pos*2+1]+=lazy[pos];
-        }
-        lazy[pos] = 0;
-    }
-    if(hi<l||lw>h) return 0;
-    if(lw<=l&&hi>=h){
-       // P2(l,h)
-       // P(seg[pos])
-        return seg[pos];
-    }
-    int mid = (l+h)/2;
 
-    return max(query(lw,hi,l,mid,pos*2) , query(lw,hi,mid+1,h,pos*2+1));
+int query(int lw, int hi, int idx, int pos){
+    if(lw>hi) return 0;
+    seg[pos].sum--;
+    //pp(seg[pos].sum,pos)
+    if(lw==hi){
+        return seg[pos].dt;
+    }
+    int mid = (lw+hi)/2;
+    if(idx<=seg[pos*2].sum){
+        return query(lw,mid,idx,pos*2);
+    }
+    else return query(mid+1,hi,idx-seg[pos*2].sum,pos*2+1);
 }
 
 int main(){
-    int i,j,k,l,in=0,ts,cas=0,a,b,c,x,y,n,m,h;
-    freopen("test.txt","r",stdin);
+    int n,m,i,j,k,a,b,x,y,ts,cas=0,in;
     char ch;
+    //freopen("test.txt","r",stdin);
     cin>>ts;
     while(++cas<=ts){
         scanf("%d %d",&n,&m);
-        in = 0;
+        x = n+m+2;
+        in=n;
         memset(seg,0,sizeof seg);
-        memset(lazy,0,sizeof lazy);
         for(i=1;i<=n;i++){
-            scanf("%d",&ara[++in]);
+            scanf("%d",&a);
+            //pp(i,"-------------------")
+            update(1,x,i,a,1);
         }
         printf("Case %d:\n",cas);
-        h = n+m+3;
         for(i=1;i<=m;i++){
-            scanf(" %c%d",&ch,&x);
-            if('a'==ch){
-                ara[++in] = x;
+            scanf(" %c %d",&ch,&a);
+            if(ch=='c'){
+                if(a>seg[1].sum){
+                    puts("none");
+                }
+                else{
+                    printf("%d\n",query(1,x,a,1));
+                }
             }
             else{
-                a = query(x,x,1,h,1);
-               // P(a)
-                if(ara[x+1]==-1){
-                    b = query(x,h,1,h,1);
-                    if(b>a){
-                        update(x,x,1,h,1);
-                    }
-                }
-                if(x+a>in){
-                    printf("none\n");
-                    continue;
-                }
-                else if(ara[x+a]==-1){
-                    printf("none\n");
-                    continue;
-                }
-                else printf("%d\n",ara[x+a]);
-                ara[x+a] = -1;
-                update(x,h,1,h,1);
+                in++;
+                update(1,x,in,a,1);
             }
         }
     }
     return 0;
 }
-
-
